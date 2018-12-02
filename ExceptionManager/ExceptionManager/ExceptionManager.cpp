@@ -4,6 +4,26 @@
 #include "stdafx.h"
 #include "ExceptionManager.h"
 ExceptionManager __ExceptionManager;
+
+ExceptionDataChecker::ExceptionDataChecker() :needTrigger(true), handled(0)
+{
+
+}
+
+ExceptionDataChecker::~ExceptionDataChecker()
+{
+	if (handled)
+	{
+		return;
+	}
+	
+	if (needTrigger)
+	{
+		needTrigger = false;
+		__ExceptionManager.FINALLY();
+	}
+	handled = 1;
+}
 ExceptionStatus::ExceptionStatus()
 {
 }
@@ -50,7 +70,7 @@ void ExceptionStatus::getTrace(char* buf,int size){
 		sprintf_s(buf, size, "(NOT THROWN)\n");
 	}
 }
-ExceptionStatus* ExceptionManager::NEWBACK(const char* file, int line, const char* fnc){
+ExceptionStatus* ExceptionManager::NEWBACK(const char* file, int line, const char* fnc, ExceptionDataChecker* checker ){
 	ExceptionStatus* ex = new ExceptionStatus();
 	memset(ex, 0, sizeof(ExceptionStatus));
 	stack.push_back(ex);
@@ -60,6 +80,7 @@ ExceptionStatus* ExceptionManager::NEWBACK(const char* file, int line, const cha
 	ex->line_try = line;
 	ex->jmpbufStatus = 1;
 	ex->Parent = this;
+	ex->mChecker = checker;
 	return ex;
 }
 bool ExceptionManager::TRY(const char* file,int line,const char* fnc){
@@ -89,7 +110,8 @@ bool ExceptionManager::CATCH(ExceptionStatus** _ex, int type){
 	if (this->stack.empty()) return false;
 	ExceptionStatus* top = stack.back();
 	if (!top->thrown) return false;
-	if (top->byType && top->errorType != type){
+	if (top->byType && top->errorType != type)
+	{
 		return false;
 	}
 	top->handled = true;
@@ -107,7 +129,7 @@ void ExceptionManager::THROW_Impl(const char* message, int type, const char* fil
 		else{
 			fprintf(stderr, "thrown from [%s:%d] %s\nMessage=%s\n",
 				file, line, fnc, message);
-			exit(-1);
+			//exit(-1);
 		}
 		return;
 	}
@@ -154,11 +176,20 @@ void ExceptionManager::RemoveLast(){
 bool  ExceptionManager::FINALLY(){
 	if (this->stack.empty()) return false;
 	ExceptionStatus* ex = stack.back();
-	if (ex->thrown &&  !ex->handled){
+	if (ex->mChecker != NULL)
+	{	
+		// if finally is presented, disable the checker
+		ex->mChecker->needTrigger = false;
+		ex->mChecker->handled = 1;
+		ex->mChecker = NULL;
+	}
+	if (ex->thrown &&  !ex->handled)
+	{
 		stack.pop_back();
 		THROW_Impl(ex->MSG, ex->errorType, ex->filename, ex->line, ex->function, ex->byType);
 	}
-	else{
+	else
+	{
 		free(ex);
 		stack.pop_back();
 		if (stack.empty())
