@@ -102,6 +102,8 @@ bool  ExceptionManager::CATCH(ExceptionStatus** _ex){
 	{
 		return false;
 	}
+	if (top->handled) return false;
+	top->hasPassCatch = true;
 	top->handled = true;
 	*_ex = top;
 	return true;
@@ -110,6 +112,8 @@ bool ExceptionManager::CATCH(ExceptionStatus** _ex, int type){
 	if (this->stack.empty()) return false;
 	ExceptionStatus* top = stack.back();
 	if (!top->thrown) return false;
+	if (top->handled) return false;
+	top->hasPassCatch = true;
 	if (top->byType && top->errorType != type)
 	{
 		return false;
@@ -118,8 +122,7 @@ bool ExceptionManager::CATCH(ExceptionStatus** _ex, int type){
 	*_ex = top;
 	return true;
 }
-void ExceptionManager::THROW_Impl(const char* message, int type, const char* file, int line, const char* fnc, bool throwType)
-{
+void ExceptionManager::UnhandledExceptionChecker(const char* message, int type, const char* file, int line, const char* fnc, bool throwType){
 	if (this->stack.empty()){
 		fprintf(stderr, "Unhandled Exception:\n");
 		if (throwType){
@@ -129,10 +132,15 @@ void ExceptionManager::THROW_Impl(const char* message, int type, const char* fil
 		else{
 			fprintf(stderr, "thrown from [%s:%d] %s\nMessage=%s\n",
 				file, line, fnc, message);
-			//exit(-1);
 		}
+		getchar();
+		exit(-1);
 		return;
 	}
+}
+void ExceptionManager::THROW_Impl(const char* message, int type, const char* file, int line, const char* fnc, bool throwType,bool isRethrow)
+{
+	UnhandledExceptionChecker(message, type, file, line, fnc, throwType);
 	ExceptionStatus* ex = stack.back();
 	if (ex->handled){
 		// re throw
@@ -140,6 +148,13 @@ void ExceptionManager::THROW_Impl(const char* message, int type, const char* fil
 		if (this->stack.empty()) return;
 		ex = stack.back();
 		if (ex == NULL) return;
+	}
+	if (ex->mChecker != NULL && ex->mChecker->needTrigger && !ex->mChecker->handled)
+	{
+		// finally not called
+		FINALLY();
+		UnhandledExceptionChecker(message, type, file, line, fnc, throwType);
+		ex = stack.back();
 	}
 	strcpy_s(ex->MSG, 1024, message);
 	ex->thrown = true;
@@ -186,7 +201,7 @@ bool  ExceptionManager::FINALLY(){
 	if (ex->thrown &&  !ex->handled)
 	{
 		stack.pop_back();
-		THROW_Impl(ex->MSG, ex->errorType, ex->filename, ex->line, ex->function, ex->byType);
+		THROW_Impl(ex->MSG, ex->errorType, ex->filename, ex->line, ex->function, ex->byType,true);
 	}
 	else
 	{

@@ -15,6 +15,8 @@ static void fnc1()
 
 static int counter_fnc2 = 0;
 static void fnc2(){
+	
+
 	__try{
 		for (int i = 0; i < 10; ++i)
 		{
@@ -25,7 +27,7 @@ static void fnc2(){
 	{
 		ex->printTraceDump();
 	}
-	__finally;
+	//__finally;
 	if (counter_fnc2 > 5)
 	{
 		__throw_s("Fnc2.counter>10");
@@ -36,7 +38,7 @@ static void fnc3(){
 	__try
 	{
 		for (int i = 0; i < 15; ++i)
-		{
+		{		
 			__try
 			{
 				fnc2();
@@ -45,7 +47,7 @@ static void fnc3(){
 			{
 				ex->printTraceDump();
 			}
-			__finally;
+			//__finally;
 		}
 		fnc1();
 	}
@@ -53,11 +55,20 @@ static void fnc3(){
 	{
 		ex->printTraceDump();
 	}
-	__finally;
+	__catch_s(ex)
+	{
+		ex->printTraceDump();
+	}
+	//__finally;
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
-	fnc3();
+	__try{
+		fnc3();
+	}
+	__catch_st(ex,1025){
+		ex->printTraceDump();
+	}
 	getchar();
 	return 0;
 }

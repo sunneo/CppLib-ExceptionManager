@@ -11,6 +11,7 @@ class ExceptionDataChecker;
 class ExceptionStatus{
 private:
 	friend class ExceptionManager;
+	bool hasPassCatch;
 	ExceptionManager* Parent;
 	int jmpbufStatus;
 	bool thrown;
@@ -39,7 +40,8 @@ private:
 	friend class ExceptionStatus;
 	std::list<ExceptionStatus*> stack;
 	void RemoveLast();
-	void THROW_Impl(const char* message, int type = -1, const char* file = "", int line = 0, const char* fnc = "", bool throwType = false);
+	void THROW_Impl(const char* message, int type = -1, const char* file = "", int line = 0, const char* fnc = "", bool throwType = false,bool isRethrow=false);
+	void UnhandledExceptionChecker(const char* message, int type, const char* file, int line, const char* fnc, bool throwType);
 public:
 	ExceptionStatus* NEWBACK(const char* file, int line, const char* fnc, ExceptionDataChecker* checker=NULL);
 	ExceptionStatus* current;
