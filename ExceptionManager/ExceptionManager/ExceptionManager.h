@@ -67,6 +67,6 @@ extern ExceptionManager __ExceptionManager;
 #define __catch_st(X,ERROR_TYPE) if(__ExceptionManager.CATCH(&__ExceptionManager.current,(ERROR_TYPE))) if(ExceptionStatus* X=(__ExceptionManager.current))
 #define __throw_s(MSG) __ExceptionManager.THROW((MSG),__FILE__,__LINE__,__FUNCTION__)
 #define __throw_t(TYPE) __ExceptionManager.THROW((TYPE),"", __FILE__,__LINE__,__FUNCTION__)
-#define __throw_t2(TYPE,MSG) __ExceptionManager.THROW((TYPE),(MSG), __FILE__,__LINE__,__FUNCTION__)
+#define __throw_st(MSG,TYPE) __ExceptionManager.THROW((TYPE),(MSG), __FILE__,__LINE__,__FUNCTION__)
 #define __finally if(__ExceptionManager.FINALLY())
 #endif
