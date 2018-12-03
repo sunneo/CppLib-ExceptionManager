@@ -1,31 +1,25 @@
-﻿========================================================================
-    主控台應用程式：ExceptionManager 專案概觀
-========================================================================
+用在沒有Exception支援的環境的exception handler
 
-AppWizard 已經為您建立了這個 ExceptionManager 應用程式。
-
-這個檔案包含一份摘要，簡要說明構成 ExceptionManager 應用程式的
-所有檔案，它們個別的內容。
+支援巢狀try-catch
+若throw的exception沒有被try-catch抓到，會向外拋
+如果有unhandled exception會顯示訊息
 
 
-ExceptionManager.vcxproj
-    這是使用應用程式精靈所產生之 VC++ 專案的主要專案檔。它含有產生該檔案之 Visual C++ 的版本資訊，以及有關使用應用程式精靈所選取之平台、組態和專案功能的資訊。
+__try
+__throw_s(字串)
+__throw_t(id)
 
-ExceptionManager.vcxproj.filters
-    這是使用應用程式精靈所產生之 VC++ 專案的篩選檔。檔案中含有您專案中檔案與篩選器之間關聯的相關資訊。這項關聯用於 IDE 中以顯示特定節點下具有類似副檔名之檔案的群組 (例如，".cpp" 檔案會與 "Source Files" 篩選器相關聯)。
+//抓任意exception，並取得exception
+__catch_s(ex)
 
-ExceptionManager.cpp
-    這是主要應用程式原始程式檔。
+//抓某個id
+__catch_t(id)
 
-/////////////////////////////////////////////////////////////////////////////
-其他標準檔案：
+//抓某個id，並取得對應的exception
+__catch_st(ex,id)
 
-StdAfx.h, StdAfx.cpp
-    這些檔案是用來建置名為 ExceptionManager.pch 的先行編譯標頭 (PCH) 檔，以及名為 StdAfx.obj 的先行編譯型別檔。
+//finally，可寫可不寫
+__finally 
 
-/////////////////////////////////////////////////////////////////////////////
-其他注意事項:
+exception可以取得what(), message(), 或用getTrace(char* buf,int size)，或printTraceDump()
 
-AppWizard 使用 "TODO:" 來指示您應該加入或自訂的原始程式碼部分。
-
-/////////////////////////////////////////////////////////////////////////////
